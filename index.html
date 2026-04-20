@@ -1,0 +1,502 @@
+import random
+
+# Generate a unique hue for the emerald accent to ensure visual distinction
+emerald_hue = random.randint(140, 160)  # Emerald sits around 150° on the color wheel
+print(f"Emerald Hue: {emerald_hue}")
+
+# Create the complete HTML/CSS/JS clock widget
+html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emerald Chronos</title>
+    <style>
+        :root {{
+            --bg-dark: #0a0f0d;
+            --bg-panel: #111a16;
+            --emerald-primary: hsl({emerald_hue}, 85%, 45%);
+            --emerald-glow: hsl({emerald_hue}, 90%, 60%);
+            --emerald-dim: hsl({emerald_hue}, 40%, 20%);
+            --text-primary: #e0f2e9;
+            --text-secondary: #6b9c85;
+            --glass-border: rgba(255, 255, 255, 0.05);
+        }}
+
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+
+        body {{
+            background: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }}
+
+        /* Animated background particles */
+        .particles {{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }}
+
+        .particle {{
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--emerald-dim);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+            opacity: 0.5;
+        }}
+
+        @keyframes float {{
+            0% {{ transform: translateY(100vh) translateX(0); opacity: 0; }}
+            10% {{ opacity: 0.5; }}
+            90% {{ opacity: 0.5; }}
+            100% {{ transform: translateY(-10vh) translateX(20px); opacity: 0; }}
+        }}
+
+        /* Main Widget Container */
+        .widget-container {{
+            position: relative;
+            z-index: 10;
+            background: var(--bg-panel);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.02),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            max-width: 400px;
+            width: 90vw;
+        }}
+
+        /* SVG Clock */
+        .clock-wrapper {{
+            position: relative;
+            width: 280px;
+            height: 280px;
+        }}
+
+        .clock-svg {{
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }}
+
+        .clock-face {{
+            fill: none;
+            stroke: var(--emerald-dim);
+            stroke-width: 2;
+        }}
+
+        .clock-tick {{
+            fill: none;
+            stroke: var(--text-secondary);
+            stroke-width: 1;
+            opacity: 0.3;
+        }}
+
+        .clock-tick.major {{
+            stroke: var(--emerald-primary);
+            stroke-width: 2;
+            opacity: 0.6;
+        }}
+
+        /* Progress Rings */
+        .progress-ring {{
+            fill: none;
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }}
+
+        .progress-ring.seconds {{
+            stroke: var(--emerald-primary);
+            filter: drop-shadow(0 0 6px var(--emerald-glow));
+        }}
+
+        .progress-ring.minutes {{
+            stroke: var(--emerald-dim);
+            stroke-width: 4;
+            opacity: 0.5;
+        }}
+
+        .progress-ring.hours {{
+            stroke: var(--text-secondary);
+            stroke-width: 2;
+            opacity: 0.3;
+        }}
+
+        /* Clock Hands */
+        .hand {{
+            fill: none;
+            stroke-linecap: round;
+            transition: transform 0.1s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+            transform-origin: center;
+        }}
+
+        .hand.hour {{
+            stroke: var(--text-primary);
+            stroke-width: 4;
+            filter: drop-shadow(0 0 4px rgba(224, 242, 233, 0.3));
+        }}
+
+        .hand.minute {{
+            stroke: var(--emerald-primary);
+            stroke-width: 3;
+            filter: drop-shadow(0 0 6px var(--emerald-glow));
+        }}
+
+        .hand.second {{
+            stroke: var(--emerald-glow);
+            stroke-width: 1.5;
+            filter: drop-shadow(0 0 8px var(--emerald-glow));
+        }}
+
+        .center-dot {{
+            fill: var(--bg-dark);
+            stroke: var(--emerald-primary);
+            stroke-width: 2;
+            filter: drop-shadow(0 0 4px var(--emerald-glow));
+        }}
+
+        /* Digital Display */
+        .digital-display {{
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }}
+
+        .time-digital {{
+            font-size: 3rem;
+            font-weight: 200;
+            color: var(--text-primary);
+            letter-spacing: -1px;
+            line-height: 1;
+            text-shadow: 0 0 20px rgba(224, 242, 233, 0.1);
+        }}
+
+        .time-digital .colon {{
+            color: var(--emerald-primary);
+            animation: pulse 1s infinite;
+            margin: 0 4px;
+        }}
+
+        @keyframes pulse {{
+            0%, 100% {{ opacity: 1; }}
+            50% {{ opacity: 0.3; }}
+        }}
+
+        .date-display {{
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 500;
+        }}
+
+        /* Info Grid */
+        .info-grid {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            width: 100%;
+        }}
+
+        .info-card {{
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }}
+
+        .info-card:hover {{
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--emerald-dim);
+            transform: translateY(-2px);
+        }}
+
+        .info-label {{
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }}
+
+        .info-value {{
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }}
+
+        .info-value.emerald {{
+            color: var(--emerald-glow);
+        }}
+
+        /* Week Progress Bar */
+        .week-progress {{
+            width: 100%;
+            margin-top: 10px;
+        }}
+
+        .week-labels {{
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }}
+
+        .week-bar {{
+            height: 4px;
+            background: var(--emerald-dim);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }}
+
+        .week-fill {{
+            height: 100%;
+            background: linear-gradient(90deg, var(--emerald-primary), var(--emerald-glow));
+            border-radius: 2px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px var(--emerald-glow);
+        }}
+
+        /* Responsive */
+        @media (max-width: 480px) {{
+            .widget-container {{
+                padding: 24px;
+            }}
+            .clock-wrapper {{
+                width: 220px;
+                height: 220px;
+            }}
+            .time-digital {{
+                font-size: 2.2rem;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="widget-container">
+        <!-- SVG Analog Clock -->
+        <div class="clock-wrapper">
+            <svg class="clock-svg" viewBox="0 0 200 200">
+                <!-- Definitions for gradients -->
+                <defs>
+                    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:var(--emerald-primary);stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:var(--emerald-glow);stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                
+                <!-- Outer Ring -->
+                <circle cx="100" cy="100" r="95" class="clock-face" />
+                
+                <!-- Progress Rings (Hours, Minutes, Seconds) -->
+                <circle cx="100" cy="100" r="88" class="progress-ring hours" 
+                        stroke-dasharray="552.9" stroke-dashoffset="552.9" id="ring-hours" />
+                <circle cx="100" cy="100" r="82" class="progress-ring minutes" 
+                        stroke-dasharray="515.2" stroke-dashoffset="515.2" id="ring-minutes" />
+                <circle cx="100" cy="100" r="76" class="progress-ring seconds" 
+                        stroke-dasharray="477.5" stroke-dashoffset="477.5" id="ring-seconds" />
+                
+                <!-- Tick Marks -->
+                <g id="ticks"></g>
+                
+                <!-- Hands -->
+                <line x1="100" y1="100" x2="100" y2="55" class="hand hour" id="hand-hour" />
+                <line x1="100" y1="100" x2="100" y2="35" class="hand minute" id="hand-minute" />
+                <line x1="100" y1="100" x2="100" y2="25" class="hand second" id="hand-second" />
+                
+                <!-- Center Dot -->
+                <circle cx="100" cy="100" r="4" class="center-dot" />
+            </svg>
+        </div>
+
+        <!-- Digital Display -->
+        <div class="digital-display">
+            <div class="time-digital">
+                <span id="dig-hour">00</span><span class="colon">:</span><span id="dig-minute">00</span><span class="colon">:</span><span id="dig-second">00</span>
+            </div>
+            <div class="date-display" id="date-display">Loading...</div>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-label">Day Progress</div>
+                <div class="info-value emerald" id="day-progress">0%</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Week</div>
+                <div class="info-value" id="week-num">--</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Timezone</div>
+                <div class="info-value" id="timezone">UTC</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Unix Time</div>
+                <div class="info-value" id="unix-time">0</div>
+            </div>
+        </div>
+
+        <!-- Week Progress -->
+        <div class="week-progress">
+            <div class="week-labels">
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+            <div class="week-bar">
+                <div class="week-fill" id="week-fill" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate background particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {{
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            particle.style.animationDelay = (Math.random() * 15) + 's';
+            particle.style.width = (Math.random() * 3 + 1) + 'px';
+            particle.style.height = particle.style.width;
+            particlesContainer.appendChild(particle);
+        }}
+
+        // Generate clock ticks
+        const ticksGroup = document.getElementById('ticks');
+        for (let i = 0; i < 60; i++) {{
+            const angle = (i * 6) * (Math.PI / 180);
+            const isMajor = i % 5 === 0;
+            const innerR = isMajor ? 85 : 90;
+            const outerR = 95;
+            
+            const x1 = 100 + innerR * Math.cos(angle);
+            const y1 = 100 + innerR * Math.sin(angle);
+            const x2 = 100 + outerR * Math.cos(angle);
+            const y2 = 100 + outerR * Math.sin(angle);
+            
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('class', isMajor ? 'clock-tick major' : 'clock-tick');
+            ticksGroup.appendChild(line);
+        }}
+
+        // Clock logic
+        function updateClock() {{
+            const now = new Date();
+            
+            // Time components
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const milliseconds = now.getMilliseconds();
+            
+            // Smooth second hand
+            const smoothSeconds = seconds + milliseconds / 1000;
+            
+            // Calculate angles (SVG is rotated -90deg, so 0 is at top)
+            const secondAngle = (smoothSeconds / 60) * 360;
+            const minuteAngle = ((minutes + smoothSeconds / 60) / 60) * 360;
+            const hourAngle = (((hours % 12) + minutes / 60) / 12) * 360;
+            
+            // Update hands
+            document.getElementById('hand-second').style.transform = `rotate(${{secondAngle}}deg)`;
+            document.getElementById('hand-minute').style.transform = `rotate(${{minuteAngle}}deg)`;
+            document.getElementById('hand-hour').style.transform = `rotate(${{hourAngle}}deg)`;
+            
+            // Update progress rings
+            const circumference = {{
+                hours: 2 * Math.PI * 88,
+                minutes: 2 * Math.PI * 82,
+                seconds: 2 * Math.PI * 76
+            }};
+            
+            document.getElementById('ring-hours').style.strokeDashoffset = 
+                circumference.hours - (hours / 24) * circumference.hours;
+            document.getElementById('ring-minutes').style.strokeDashoffset = 
+                circumference.minutes - (minutes / 60) * circumference.minutes;
+            document.getElementById('ring-seconds').style.strokeDashoffset = 
+                circumference.seconds - (smoothSeconds / 60) * circumference.seconds;
+            
+            // Update digital display
+            document.getElementById('dig-hour').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('dig-minute').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('dig-second').textContent = seconds.toString().padStart(2, '0');
+            
+            // Update date
+            const options = {{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }};
+            document.getElementById('date-display').textContent = now.toLocaleDateString('en-US', options);
+            
+            // Update info cards
+            const dayProgress = ((hours * 3600 + minutes * 60 + seconds) / 86400 * 100).toFixed(1);
+            document.getElementById('day-progress').textContent = dayProgress + '%';
+            
+            const weekNum = getWeekNumber(now);
+            document.getElementById('week-num').textContent = 'W' + weekNum;
+            
+            document.getElementById('timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            document.getElementById('unix-time').textContent = Math.floor(now.getTime() / 1000);
+            
+            // Update week progress bar
+            const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday
+            const adjustedDay = dayOfWeek === 0 ? 7 : dayOfWeek;
+            const weekProgress = ((adjustedDay - 1 + (hours / 24)) / 7 * 100).toFixed(1);
+            document.getElementById('week-fill').style.width = weekProgress + '%';
+            
+            requestAnimationFrame(updateClock);
+        }}
+        
+        function getWeekNumber(date) {{
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }}
+        
+        // Start the clock
+        updateClock();
+    </script>
+</body>
+</html>"""
+
+# Save the file
+output_path = '/mnt/agents/output/index.html'
+with open(output_path, 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print(f"Clock widget saved to: {output_path}")
+print(f"Emerald accent hue: {emerald_hue}°")
